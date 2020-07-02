@@ -86,5 +86,12 @@ class Memmory:
         return batch
 
     def get_last_trajectory(self):
-        batch = copy.deepcopy(trajectory = self.trajectories[-1])
+        batch = {
+            'observation': [],
+            'next_obs': [],
+            'action_index': [],
+            'reward': [],
+            'done': [],
+        }
+        batch = copy.deepcopy(self.get_e(batch, -1))
         return batch

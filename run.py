@@ -1,8 +1,8 @@
 import gym
 import random
-import numpy as np
 
-from .memory import Memmory
+from alg import Learner
+from mem.memory import Memmory
 
 
 ENV_NAME = 'MountainCar-v0'  # Environment name
@@ -15,17 +15,20 @@ def init():
     param_set = {
         'mamory_size': 10,
         'alg': 'REINFORCE',
+        'gamma': 0.9,
+        'learning_rate': 0.01,
         'random_seed': random.randint(0, 1000),
         'n_action': env.action_space.n,
         'obs_shape': env.observation_space.shape,
         'max_step': env._max_episode_steps,
         'n_episode': 100,
+        'hidden_dim': 64,
     }
 
     param_set['path'] = ENV_NAME + '/' + param_set['alg'] + '/' + str(param_set['random_seed'])
 
     writer = SummaryWriter('logs/' + param_set['path'])
-    agent = Agent(param_set, writer)
+    agent = Learner[param_set['alg']](param_set, writer)
 
     memory = Memmory(param_set)
 

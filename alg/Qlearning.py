@@ -5,6 +5,7 @@ import numpy as np
 
 import os
 from .model.base import DNNAgent
+from .util.epsilon_schedules import DecayThenFlatSchedule
 
 
 class QLearner:
@@ -17,9 +18,7 @@ class QLearner:
         self.obs_shape = param_set['obs_shape'][0]
         self.gamma = param_set['gamma']
         self.learning_rate = param_set['learning_rate']
-        self.epsilon = param_set['epsilon']
         self.n_action = param_set['n_action']
-
 
         self.Q = DNNAgent(param_set)
         self.targetQ = copy.deepcopy(self.Q)
@@ -30,10 +29,14 @@ class QLearner:
         self.optimiser = Adam(params=self.params, lr=self.learning_rate)
         self.writer = writer
         self.step = 0
+        self.batch_size = param_set['batch_size']
+
+        self.schedule = DecayThenFlatSchedule(start=param_set['epsilon_start'], finish=param_set['epsilon_end'],
+                                              time_length=param_set['time_length'], decay="linear")
 
     def get_action(self, observation, greedy=False):
         obs = th.FloatTensor(observation)
-        if np.random.rand() < self.epsilon and not greedy:
+        if np.random.rand() < self.schedule.eval(self.step) and not greedy:
             action_index = np.random.randint(0, self.n_action)
             q = th.full((self.n_action,), 1/self.n_action)
         else:
@@ -44,7 +47,7 @@ class QLearner:
         return action_index, q
 
     def learn(self, memory):
-        batch = memory.get_sample()
+        batch = memory.get_sample(batch_size=self.batch_size)
         if not batch['flag']:
             return
         obs = th.FloatTensor(batch['observation'])
@@ -56,9 +59,9 @@ class QLearner:
         q = self.Q(obs)
         chose_q = th.gather(q, dim=1, index=action_index.unsqueeze(-1)).squeeze(-1)
 
-        next_qmax = self.targetQ(next_obs).max().squeeze(-1).detach()
+        next_qmax = self.targetQ(next_obs).max().squeeze(-1)
         target_q = reward + self.gamma * (1-done) * next_qmax
-        td_error = chose_q - target_q
+        td_error = chose_q - target_q.detach()
         td_loss = (td_error ** 2).mean()
 
         self.writer.add_scalar('Loss/TD_loss', td_loss.item(), self.step )

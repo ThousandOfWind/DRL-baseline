@@ -21,8 +21,10 @@ def init():
     env = gym.make(ENV_NAME)
 
     param_set = copy.deepcopy(PARAM['QLearning'])
+    # param_set = copy.deepcopy(PARAM['REINFORCE'])
 
     env_param = {
+        'test_episode': 4,
         'random_seed': random.randint(0, 1000),
         'n_action': env.action_space.n,
         'obs_shape': env.observation_space.shape,
@@ -48,6 +50,8 @@ def run(env, agent, memory, writer, param_set):
         observation = env.reset()
         step = 0
         total_reward = 0
+        # agent.new_trajectory()
+
         while not terminal and step < param_set['max_step']:
             action,_ = agent.get_action(observation)
 
@@ -105,27 +109,33 @@ class Util:
 
 
 def test(env, agent, param_set):
-    terminal = False
-    observation = env.reset()
-    step = 0
-    total_reward = 0
     size = 1000
-
     img_action_intend = np.zeros([size, size, 3], np.float32)
     util = Util(env.observation_space.high, env.observation_space.low, size)
 
+    for e in range(param_set['test_episode']):
+        terminal = False
+        observation = env.reset()
+        step = 0
+        total_reward = 0
+        # agent.new_trajectory()
 
-    while not terminal and step < param_set['max_step']:
-        action, prop = agent.get_action(observation, True)
+        while not terminal and step < param_set['max_step']:
+            action, prop = agent.get_action(observation, True)
 
-        next_observation, reward, terminal, _ = env.step(action=action)
-        pos = util.get_pos(observation)
-        img_action_intend[pos[0],pos[1], :] += prop.detach().numpy()
-        observation = next_observation
-        step += 1
-        total_reward += reward
+            next_observation, reward, terminal, _ = env.step(action=action)
+            pos = util.get_pos(observation)
+            img_action_intend[pos[0],pos[1], :] += prop.detach().numpy()
+            observation = next_observation
+            step += 1
+            total_reward += reward
 
-    img_action_intend = img_action_intend - img_action_intend.min()
+        print('test:',total_reward, '/', step)
+
+    min = img_action_intend.min()
+    print(min)
+    img_action_intend[img_action_intend==0] = min
+    img_action_intend = img_action_intend - min
     img_action_intend = (img_action_intend/ img_action_intend.max()) * 255
     img_action_intend.astype(np.uint8)
 

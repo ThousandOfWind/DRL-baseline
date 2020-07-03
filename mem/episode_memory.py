@@ -3,16 +3,11 @@ import random as rd
 import copy
 
 class Memmory:
-    """
-    unimplement!!!
-
-    """
 
     def __init__(self, param_set):
         self.trajectories = []
         self.max_n_trajextories = param_set['mamory_size']
-        self.episode_index = 0
-        self.n_trajextories = 0
+        self.max_seq_len = param_set['max_step']
 
         self.current_trajectory = {
             'observation': [],
@@ -27,11 +22,9 @@ class Memmory:
 
     def end_trajectory(self, exprience):
         self.append(exprience)
-        self.n_trajextories += 1
 
         self.trajectories.append(copy.deepcopy(self.current_trajectory))
 
-        self.episode_index += 1
         self.current_trajectory.clear()
 
         self.current_trajectory = {
@@ -55,6 +48,9 @@ class Memmory:
         done = [0] * len(traject['observation'])
         done[-1] = 1
         batch['done'].append(done)
+
+    # TODO 用self.max_seq_len补全batch
+
 
     def get_sample(self, batch_size=32, mode='random'):
         """
@@ -93,5 +89,5 @@ class Memmory:
             'reward': [],
             'done': [],
         }
-        batch = copy.deepcopy(self.get_e(batch, -1))
+        self.get_e(batch, -1)
         return batch

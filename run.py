@@ -13,15 +13,17 @@ import copy
 import numpy as np
 import torch as th
 
-ENV_NAME = 'MountainCar-v0'  # Environment name
+ENV_NAME = 'CartPole-v1'  # Environment name
 from tensorboardX import SummaryWriter
 
 
 def init():
     env = gym.make(ENV_NAME)
 
-    param_set = copy.deepcopy(PARAM['QLearning'])
+    # param_set = copy.deepcopy(PARAM['QLearning'])
     # param_set = copy.deepcopy(PARAM['REINFORCE'])
+    param_set = copy.deepcopy(PARAM['REINFORCE-B'])
+
 
     env_param = {
         'test_episode': 4,
@@ -50,7 +52,9 @@ def run(env, agent, memory, writer, param_set):
         observation = env.reset()
         step = 0
         total_reward = 0
-        # agent.new_trajectory()
+
+        if param_set['alg'] in ['REINFORCE', 'REINFORCE-B']:
+            agent.new_trajectory()
 
         while not terminal and step < param_set['max_step']:
             action,_ = agent.get_action(observation)
@@ -95,14 +99,17 @@ def run(env, agent, memory, writer, param_set):
 
 class Util:
     def __init__(self, high, low, size):
-        self.I_h, self.J_h = high
-        self.I_l, self.J_l = low
+        self.I_h = high[0]
+        self.J_h = high[2]
+        self.I_l = low[0]
+        self.J_l = low[2]
 
         self.I_scale = size / (self.I_h - self.I_l)
         self.J_scale = size / (self.J_h - self.J_l)
 
     def get_pos(self, obs):
-        i, j = obs
+        i = obs[0]
+        j = obs[2]
         i = int((i-self.I_l)* self.I_scale)
         j = int((j-self.J_l)* self.J_scale)
         return (i,j)
@@ -118,14 +125,15 @@ def test(env, agent, param_set):
         observation = env.reset()
         step = 0
         total_reward = 0
-        # agent.new_trajectory()
+        if param_set['alg'] in ['REINFORCE', 'REINFORCE-B']:
+            agent.new_trajectory()
 
         while not terminal and step < param_set['max_step']:
             action, prop = agent.get_action(observation, True)
 
             next_observation, reward, terminal, _ = env.step(action=action)
             pos = util.get_pos(observation)
-            img_action_intend[pos[0],pos[1], :] += prop.detach().numpy()
+            img_action_intend[pos[0],pos[1], 1:] += prop.detach().numpy()
             observation = next_observation
             step += 1
             total_reward += reward

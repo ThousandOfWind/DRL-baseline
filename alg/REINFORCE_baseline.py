@@ -39,11 +39,11 @@ class REINFORCELearner:
 
     def get_action(self, observation, *arg):
         obs = th.FloatTensor(observation)
-        pi, _ = self.pi(obs=obs)
+        pi = self.pi(obs=obs)
         m = Categorical(pi)
         action_index = m.sample()
 
-        self.log_pi_batch.append(pi)
+        self.log_pi_batch.append(m.log_prob(action_index))
         self.b_batch.append(self.B(obs=obs))
         return int(action_index), pi
 
@@ -62,7 +62,7 @@ class REINFORCELearner:
         log_pi = th.stack(self.log_pi_batch)
         b = th.stack(self.b_batch)
         J = - ((G-b).detach() * log_pi).mean()
-        value_loss = F.smooth_l1_loss(b, reward).mean()
+        value_loss = F.smooth_l1_loss(b.squeeze(-1), reward).mean()
 
         loss = J + value_loss
 

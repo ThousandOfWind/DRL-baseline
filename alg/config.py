@@ -6,8 +6,19 @@ REINFORCE = {
     'soft': True,
     'gamma': 0.99,
     'learning_rate': 0.01,
-    'n_episode': 10000,
-    'hidden_dim': 64,
+    'n_episode': 5000,
+    'hidden_dim': 128,
+    'memory_type': 'ep'
+}
+
+REINFORCE_B = {
+    'mamory_size': 10,
+    'alg': 'REINFORCE-B',
+    'soft': True,
+    'gamma': 0.99,
+    'learning_rate': 0.01,
+    'n_episode': 5000,
+    'hidden_dim': 128,
     'memory_type': 'ep'
 }
 
@@ -16,17 +27,18 @@ QLearning = {
     'alg': 'QLearning',
     'soft': False,
     'gamma': 0.99,
-    'learning_rate': 0.01,
-    'n_episode': 10000,
+    'learning_rate': 0.001,
+    'n_episode': 5000,
     'hidden_dim': 64,
-    'batch_size': 64,
+    'batch_size': 128,
     'memory_type': 'os',
-    'target_update_interval': 50000,
+    'target_update_interval': 40000,
     'epsilon_start': 0.5,
-    'epsilon_end': 0.0001,
-    'time_length': 500000
+    'epsilon_end': 0.01,
+    'time_length': 40000
 
 }
 
 PARAM['REINFORCE'] = REINFORCE
 PARAM['QLearning'] = QLearning
+PARAM['REINFORCE-B'] = REINFORCE_B

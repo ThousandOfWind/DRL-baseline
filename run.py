@@ -3,6 +3,7 @@ import random
 import cv2 as cv
 import numpy as np
 from torchvision.utils import make_grid
+from tensorboardX import SummaryWriter
 
 
 from alg import Learner
@@ -14,7 +15,8 @@ import numpy as np
 import torch as th
 
 ENV_NAME = 'CartPole-v1'  # Environment name
-from tensorboardX import SummaryWriter
+
+EPISODIC_TRAIN = ['REINFORCE', 'REINFORCE-B', 'QAC', 'QAC-SN']
 
 
 def init():
@@ -22,7 +24,10 @@ def init():
 
     # param_set = copy.deepcopy(PARAM['QLearning'])
     # param_set = copy.deepcopy(PARAM['REINFORCE'])
-    param_set = copy.deepcopy(PARAM['REINFORCE-B'])
+    # param_set = copy.deepcopy(PARAM['REINFORCE-B'])
+    # param_set = copy.deepcopy(PARAM['QAC'])
+    param_set = copy.deepcopy(PARAM['QAC-SN'])
+
 
 
     env_param = {
@@ -53,7 +58,7 @@ def run(env, agent, memory, writer, param_set):
         step = 0
         total_reward = 0
 
-        if param_set['alg'] in ['REINFORCE', 'REINFORCE-B']:
+        if param_set['alg'] in EPISODIC_TRAIN:
             agent.new_trajectory()
 
         while not terminal and step < param_set['max_step']:
@@ -125,7 +130,7 @@ def test(env, agent, param_set):
         observation = env.reset()
         step = 0
         total_reward = 0
-        if param_set['alg'] in ['REINFORCE', 'REINFORCE-B']:
+        if param_set['alg'] in EPISODIC_TRAIN:
             agent.new_trajectory()
 
         while not terminal and step < param_set['max_step']:

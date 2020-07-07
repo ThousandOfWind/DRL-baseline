@@ -5,8 +5,7 @@ from torch.distributions import Categorical
 import torch.nn.functional as F
 
 import os
-from .model.base import DNNAgent
-from .model.critic import DNN
+from .model.ac_sharenet import DNNAgent
 
 
 class ACLearner:
@@ -20,10 +19,9 @@ class ACLearner:
         self.gamma = param_set['gamma']
         self.learning_rate = param_set['learning_rate']
 
-        self.pi = DNNAgent(param_set)
-        self.Q = DNNAgent(param_set)
+        self.ac = DNNAgent(param_set)
 
-        self.params = self.pi.parameters()
+        self.params = self.ac.parameters()
         self.optimiser = Adam(params=self.params, lr=self.learning_rate)
         self.writer = writer
         self._episode = 0
@@ -39,13 +37,13 @@ class ACLearner:
 
     def get_action(self, observation, *arg):
         obs = th.FloatTensor(observation)
-        pi, _ = self.pi(obs=obs)
+        pi, q = self.ac(obs=obs)
         m = Categorical(pi)
-        action_index = int(m.sample())
+        action_index = m.sample()
 
-        self.log_pi_batch.append(pi)
-        self.value_batch.append(self.Q(obs=obs)[action_index])
-        return action_index, pi
+        self.log_pi_batch.append(m.log_prob(action_index))
+        self.value_batch.append(q[action_index])
+        return int(action_index), pi
 
     def learn(self, memory):
         batch = memory.get_last_trajectory()
@@ -53,20 +51,19 @@ class ACLearner:
         reward = th.FloatTensor(batch['reward'][0])
         log_pi = th.stack(self.log_pi_batch)
 
-        self.value_batch.append(self.Q(batch['next_obs'][-1]))
-
         value = th.stack(self.value_batch)
+        mask = th.ones_like(value)
+        mask[-1] = 0
+        next_value = th.cat([value[1:], value[0:1]],dim=-1) * mask
 
-        # self.value_batch.append(0)
-        # next_value = th.stack(self.value_batch)[1:]
-        # G = reward + self.gamma * next_value
-        #
-        # J = - ((G-value).detach() * log_pi).mean()
-        # value_loss = F.smooth_l1_loss(value, reward).mean()
-        loss = J + value_loss
+        td_error = reward + self.gamma * next_value.detach() - value
+        td_loss = (td_error ** 2).mean()
+        J = - (value.detach() * log_pi).mean()
+
+        loss = J + td_loss
 
         self.writer.add_scalar('Loss/J', J.item(), self._episode)
-        self.writer.add_scalar('Loss/B', value_loss.item(), self._episode)
+        self.writer.add_scalar('Loss/TD_loss', td_loss.item(), self._episode)
         self.writer.add_scalar('Loss/loss', loss.item(), self._episode)
 
 

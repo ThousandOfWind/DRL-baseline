@@ -39,6 +39,29 @@ QLearning = {
 
 }
 
+QAC = {
+    'mamory_size': 10,
+    'alg': 'QAC',
+    'soft': True,
+    'gamma': 0.99,
+    'learning_rate': 0.01,
+    'n_episode': 5000,
+    'hidden_dim': 128,
+    'memory_type': 'ep'
+}
+
+QAC_SN = {
+    'mamory_size': 10,
+    'alg': 'QAC-SN',
+    'gamma': 0.99,
+    'learning_rate': 0.01,
+    'n_episode': 5000,
+    'hidden_dim': 128,
+    'memory_type': 'ep'
+}
+
 PARAM['REINFORCE'] = REINFORCE
 PARAM['QLearning'] = QLearning
 PARAM['REINFORCE-B'] = REINFORCE_B
+PARAM['QAC'] = QAC
+PARAM['QAC-SN'] = QAC_SN

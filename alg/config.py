@@ -66,7 +66,8 @@ OS_AC = {
     'alg': 'OS-AC',
     'soft': True,
     'gamma': 0.99,
-    'learning_rate': 0.01,
+    'pi_learning_rate': 0.005,
+    'V_learning_rate': 0.1,
     'n_episode': 5000,
     'hidden_dim': 128,
     'memory_type': 'os'

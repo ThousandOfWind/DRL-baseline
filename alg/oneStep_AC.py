@@ -18,16 +18,15 @@ class ACLearner:
     def __init__(self, param_set, writer):
         self.obs_shape = param_set['obs_shape'][0]
         self.gamma = param_set['gamma']
-        self.learning_rate = param_set['learning_rate']
 
         self.pi = DNNAgent(param_set)
         self.V = DNN(param_set)
 
         self.params = [
-                        {'params': self.pi.parameters()},
-                        {'params': self.V.parameters()}
+                        {'params': self.pi.parameters(), 'lr':param_set['pi_learning_rate']},
+                        {'params': self.V.parameters(), 'lr':param_set['V_learning_rate']}
                     ]
-        self.optimiser = Adam(self.params, lr=self.learning_rate)
+        self.optimiser = Adam(self.params)
 
         self.writer = writer
         self._episode = 0
@@ -58,15 +57,13 @@ class ACLearner:
         td_error = batch['reward'][0] + batch['done'][0] * self.gamma * next_value.detach() - value
 
         J = - ((self.I * td_error).detach() * self.log_pi)
+        self.I *= self.gamma
         value_loss = (td_error ** 2)
         loss = J + value_loss
-
-        # print(J, value_loss, loss)
 
         self.writer.add_scalar('Loss/J', J.item(), self._episode)
         self.writer.add_scalar('Loss/B', value_loss.item(), self._episode)
         self.writer.add_scalar('Loss/loss', loss.item(), self._episode)
-
 
         self.optimiser.zero_grad()
         loss.backward()

@@ -22,9 +22,12 @@ class REINFORCELearner:
 
         self.pi = DNNAgent(param_set)
         self.B = DNN(param_set)
+        self.params = [
+                        {'params': self.pi.parameters()},
+                        {'params': self.B.parameters()}
+                    ]
 
-        self.params = self.pi.parameters()
-        self.optimiser = Adam(params=self.params, lr=self.learning_rate)
+        self.optimiser = Adam(self.params, lr=self.learning_rate)
         self.writer = writer
         self._episode = 0
 
@@ -73,7 +76,8 @@ class REINFORCELearner:
 
         self.optimiser.zero_grad()
         loss.backward()
-        grad_norm = th.nn.utils.clip_grad_norm_(self.params, 10)
+        grad_norm = th.nn.utils.clip_grad_norm_(self.pi.parameters(), 10)
+        grad_norm = th.nn.utils.clip_grad_norm_(self.B.parameters(), 10)
         self.optimiser.step()
 
         self._episode += 1

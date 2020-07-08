@@ -32,47 +32,36 @@ class ACLearner:
         self.writer = writer
         self._episode = 0
 
-        self.log_pi_batch = []
-        self.value_batch = []
 
 
     def new_trajectory(self):
-        self.log_pi_batch = []
-        self.value_batch = []
+        self.I = 1
 
 
     def get_action(self, observation, *arg):
         obs = th.FloatTensor(observation)
-        pi= self.pi(obs=obs)
+        pi = self.pi(obs=obs)
         m = Categorical(pi)
-        action_index = int(m.sample())
-
-        self.log_pi_batch.append(pi)
-        self.value_batch.append(self.V(obs=obs))
-        return action_index, pi
+        action_index = m.sample()
+        self.log_pi = m.log_prob(action_index)
+        return int(action_index), pi
 
     def learn(self, memory):
         batch = memory.get_last_trajectory()
 
-        reward = th.FloatTensor(batch['reward'][0])
-        log_pi = th.stack(self.log_pi_batch)
+        obs = th.FloatTensor(batch['observation'])
+        next_obs = th.FloatTensor(batch['next_obs'])
 
-        # build I
-        I = [1, ]
-        for index in range(1, len(batch['reward'][0])):
-            I.append(I[index - 1] * self.gamma)
-        I = th.FloatTensor(I)
+        value = self.V(obs).squeeze(0)
+        next_value = self.V(next_obs).squeeze()
 
-        value = th.stack(self.value_batch)
-        mask = th.ones_like(value)
-        mask[-1] = 0
-        next_value = th.cat([value[1:], value[0:1]],dim=-1) * mask
+        td_error = batch['reward'][0] + batch['done'][0] * self.gamma * next_value.detach() - value
 
-        td_error = reward + self.gamma * next_value.detach() - value
-
-        J = - ((I * td_error).detach() * log_pi).mean()
-        value_loss = (td_error ** 2).mean()
+        J = - ((self.I * td_error).detach() * self.log_pi)
+        value_loss = (td_error ** 2)
         loss = J + value_loss
+
+        # print(J, value_loss, loss)
 
         self.writer.add_scalar('Loss/J', J.item(), self._episode)
         self.writer.add_scalar('Loss/B', value_loss.item(), self._episode)

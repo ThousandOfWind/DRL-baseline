@@ -4,6 +4,8 @@ from .AC import ACLearner
 from .QAC import ACLearner as QAC
 from .QAC_sharednet import ACLearner as QAC_SN
 
+from .oneStep_AC import ACLearner as OS_AC
+
 
 from .Qlearning import QLearner
 
@@ -13,5 +15,6 @@ Learner = {
     'REINFORCE-B': REINFORCE_baseline,
     'AC': ACLearner,
     'QAC': QAC,
-    'QAC-SN': QAC_SN
+    'QAC-SN': QAC_SN,
+    'OS-AC': OS_AC
 }

@@ -60,8 +60,21 @@ QAC_SN = {
     'memory_type': 'ep'
 }
 
+
+OS_AC = {
+    'mamory_size': 10,
+    'alg': 'OS-AC',
+    'soft': True,
+    'gamma': 0.99,
+    'learning_rate': 0.01,
+    'n_episode': 5000,
+    'hidden_dim': 128,
+    'memory_type': 'os'
+}
+
 PARAM['REINFORCE'] = REINFORCE
 PARAM['QLearning'] = QLearning
 PARAM['REINFORCE-B'] = REINFORCE_B
 PARAM['QAC'] = QAC
 PARAM['QAC-SN'] = QAC_SN
+PARAM['OS-AC'] = OS_AC

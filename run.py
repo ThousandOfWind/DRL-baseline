@@ -16,7 +16,7 @@ import torch as th
 
 ENV_NAME = 'CartPole-v1'  # Environment name
 
-EPISODIC_TRAIN = ['REINFORCE', 'REINFORCE-B', 'QAC', 'QAC-SN']
+EPISODIC_TRAIN = ['REINFORCE', 'REINFORCE-B', 'QAC', 'QAC-SN', 'OS-AC']
 
 
 def init():
@@ -26,9 +26,8 @@ def init():
     # param_set = copy.deepcopy(PARAM['REINFORCE'])
     # param_set = copy.deepcopy(PARAM['REINFORCE-B'])
     # param_set = copy.deepcopy(PARAM['QAC'])
-    param_set = copy.deepcopy(PARAM['QAC-SN'])
-
-
+    # param_set = copy.deepcopy(PARAM['QAC-SN'])
+    param_set = copy.deepcopy(PARAM['OS-AC'])
 
     env_param = {
         'test_episode': 4,

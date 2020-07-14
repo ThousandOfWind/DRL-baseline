@@ -64,7 +64,7 @@ def run(env, agent, memory, writer, param_set):
             agent.new_trajectory()
 
         while not terminal and step < param_set['max_step']:
-            action,_ = agent.get_action(observation)
+            action, action_log_prob, value = agent.get_action(observation)
 
             next_observation, reward, terminal, _ = env.step(action=action)
             # env.render()
@@ -77,13 +77,24 @@ def run(env, agent, memory, writer, param_set):
                     'reward': reward,
                 }
                 memory.append(experience)
+            elif param_set['alg'] == 'PPO2':
+                experience = {
+                    'observation': observation,
+                    'action_index': action,
+                    'reward': reward,
+                    'next_obs': next_observation,
+                    'done': 1 if terminal else 0,
+                    'action_log_prob': action_log_prob,
+                    'value': value,
+                }
+                memory.append(experience)
             else:
                 experience = {
                     'observation': observation,
                     'action_index': action,
                     'reward': reward,
                     'next_obs': next_observation,
-                    'done': 1 if terminal else 0
+                    'done': 1 if terminal else 0,
                 }
                 memory.append(experience)
                 agent.learn(memory)

@@ -20,12 +20,8 @@ class Memmory:
         for key in exprience:
             if key in self.current_trajectory:
                 self.current_trajectory[key].append(exprience[key])
-
-        if self.current_trajectory['observation'].__len__() > self.max_trajextory_len:
-            # self.trajectories.popleft()
-
-            for k in self.current_trajectory.keys():
-                self.current_trajectory[k] = self.current_trajectory[k][1:]
+                if self.current_trajectory[key].__len__() > self.max_trajextory_len:
+                    self.current_trajectory[key] = self.current_trajectory[key][1:]
 
     def get_e(self, batch, e):
         batch['observation'].append(copy.deepcopy(self.current_trajectory['observation'][e]))
@@ -49,8 +45,10 @@ class Memmory:
             'observation': [],
             'next_obs': [],
             'action_index': [],
+            'action_log_prob':[],
             'reward': [],
             'done': [],
+            'value':[],
         }
 
         trajectory_len = self.current_trajectory['done'].__len__()
@@ -76,3 +74,4 @@ class Memmory:
         }
         self.get_e(batch, -1)
         return batch
+

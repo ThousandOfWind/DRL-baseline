@@ -23,6 +23,7 @@ class ACLearner:
         self.pi = DNNAgent(param_set)
         self.Q = DNNAgent(param_set)
         self.Q.soft = False
+        self.Q.use_rnn = False
 
         self.params = [
                         {'params': self.pi.parameters()},
@@ -34,21 +35,30 @@ class ACLearner:
 
         self.log_pi_batch = []
         self.value_batch = []
+        self.rnn = param_set['rnn']
 
 
     def new_trajectory(self):
         self.log_pi_batch = []
         self.value_batch = []
+        self.hidden = self.pi.init_hidden()
 
 
     def get_action(self, observation, *arg):
         obs = th.FloatTensor(observation)
-        pi = self.pi(obs=obs)
+        if self.rnn:
+            obs_ = obs.unsqueeze(0)
+            pi, self.hidden = self.pi(obs=obs_, hidden=self.hidden)
+            pi = pi.squeeze(0)
+        else:
+            pi = self.pi(obs=obs)
         m = Categorical(pi)
         action_index = m.sample()
 
         self.log_pi_batch.append(m.log_prob(action_index))
-        self.value_batch.append(self.Q(obs=obs)[action_index])
+
+        q = self.Q(obs=obs)
+        self.value_batch.append(q[action_index])
         return int(action_index), pi
 
     def learn(self, memory):

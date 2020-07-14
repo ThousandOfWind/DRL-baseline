@@ -14,23 +14,31 @@ class DNNAgent(nn.Module):
         self.n_action = param_set['n_action']
         # self.dropout = nn.Dropout(p=0.6)
 
-
         self.soft = param_set['soft']
+        self.use_rnn = param_set['rnn']
 
         self.fc1 = nn.Linear(self.input_len, self.hidden_dim)
+        self.rnn = nn.GRUCell(self.hidden_dim, self.hidden_dim)
         self.fc2 = nn.Linear(self.hidden_dim, self.hidden_dim)
         self.fc3 = nn.Linear(self.hidden_dim, self.n_action)
 
+    def init_hidden(self):
+        return th.zeros((1, self.hidden_dim))
 
-    def forward(self, obs, **kwargs):
+    def forward(self, obs, hidden=None, **kwargs):
         x = F.relu(self.fc1(obs))
-        x = F.relu(self.fc2(x))
-        # x = self.dropout(x)
+
+        if self.use_rnn:
+            h_in = hidden.reshape(x.shape)
+            h = F.relu(self.rnn(x, h_in))
+            x = F.relu(self.fc2(h))
+        else:
+            x = F.relu(self.fc2(x))
+
         x = self.fc3(x)
 
         if self.soft:
             pi = F.softmax(th.exp(x), dim=-1)
-            # print(pi)
-            return pi
+            return (pi, h) if self.use_rnn else pi
         else:
-            return x
+            return (x, h) if self.use_rnn else x

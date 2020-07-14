@@ -8,7 +8,8 @@ REINFORCE = {
     'learning_rate': 0.01,
     'n_episode': 5000,
     'hidden_dim': 128,
-    'memory_type': 'ep'
+    'memory_type': 'ep',
+    'rnn': False,
 }
 
 REINFORCE_B = {
@@ -19,7 +20,8 @@ REINFORCE_B = {
     'learning_rate': 0.01,
     'n_episode': 5000,
     'hidden_dim': 128,
-    'memory_type': 'ep'
+    'memory_type': 'ep',
+    'rnn': False,
 }
 
 QLearning = {
@@ -35,8 +37,8 @@ QLearning = {
     'target_update_interval': 40000,
     'epsilon_start': 0.5,
     'epsilon_end': 0.01,
-    'time_length': 40000
-
+    'time_length': 40000,
+    'rnn': False,
 }
 
 QAC = {
@@ -47,7 +49,8 @@ QAC = {
     'learning_rate': 0.01,
     'n_episode': 5000,
     'hidden_dim': 128,
-    'memory_type': 'ep'
+    'memory_type': 'ep',
+    'rnn': False,
 }
 
 QAC_SN = {
@@ -57,7 +60,8 @@ QAC_SN = {
     'learning_rate': 0.01,
     'n_episode': 5000,
     'hidden_dim': 128,
-    'memory_type': 'ep'
+    'memory_type': 'ep',
+    'rnn': False,
 }
 
 
@@ -70,8 +74,38 @@ OS_AC = {
     'V_learning_rate': 0.1,
     'n_episode': 5000,
     'hidden_dim': 128,
-    'memory_type': 'os'
+    'memory_type': 'os',
+    'rnn': False,
 }
+QAC_rnn = {
+    'mamory_size': 10,
+    'alg': 'QAC',
+    'soft': True,
+    'gamma': 0.99,
+    'learning_rate': 0.01,
+    'n_episode': 5000,
+    'hidden_dim': 128,
+    'memory_type': 'ep',
+    'rnn': True,
+}
+
+PPO2 = {
+    'mamory_size': 1000,
+    'alg': 'PPO2',
+    'soft': True,
+    'clip': 0.2,
+    'gamma': 0.99,
+    'learning_rate': 0.01,
+    'n_episode': 5000,
+    'hidden_dim': 128,
+    'memory_type': 'os',
+    'rnn': False,
+    'layer_norm': True,
+    'minibatch_size': 128,
+    'ppo_epoch': 10,
+}
+
+
 
 PARAM['REINFORCE'] = REINFORCE
 PARAM['QLearning'] = QLearning
@@ -79,3 +113,6 @@ PARAM['REINFORCE-B'] = REINFORCE_B
 PARAM['QAC'] = QAC
 PARAM['QAC-SN'] = QAC_SN
 PARAM['OS-AC'] = OS_AC
+PARAM['QAC-rnn'] = QAC_rnn
+
+

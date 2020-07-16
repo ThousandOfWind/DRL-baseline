@@ -95,6 +95,7 @@ PPO2 = {
     'soft': True,
     'clip': 0.2,
     'gamma': 0.99,
+    'lamda': 0.97,
     'learning_rate': 0.01,
     'n_episode': 5000,
     'hidden_dim': 128,
@@ -103,6 +104,9 @@ PPO2 = {
     'layer_norm': True,
     'minibatch_size': 128,
     'ppo_epoch': 10,
+    'lossvalue_norm': True,
+    'loss_coeff_value': 0.5,
+    'loss_coeff_entropy': 0.01
 }
 
 
@@ -114,5 +118,7 @@ PARAM['QAC'] = QAC
 PARAM['QAC-SN'] = QAC_SN
 PARAM['OS-AC'] = OS_AC
 PARAM['QAC-rnn'] = QAC_rnn
+PARAM['PPO2'] = PPO2
+
 
 

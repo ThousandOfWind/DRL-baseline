@@ -28,7 +28,7 @@ def init():
     # param_set = copy.deepcopy(PARAM['QAC'])
     # param_set = copy.deepcopy(PARAM['QAC-SN'])
     # param_set = copy.deepcopy(PARAM['OS-AC'])
-    param_set = copy.deepcopy(PARAM['QAC-rnn'])
+    param_set = copy.deepcopy(PARAM['PPO2'])
     # param_set = copy.deepcopy(PARAM['QLearning-rnn'])
 
 

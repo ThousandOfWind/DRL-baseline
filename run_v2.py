@@ -110,6 +110,8 @@ def run(env, agent, memory, writer, param_set):
             }
             memory.end_trajectory(experience)
             agent.learn(memory)
+        if param_set['alg'] == 'PPO2':
+            agent.learn(memory)
 
         print(e,':',total_reward, '/', step)
         writer.add_scalar('data/reward_avg_step', total_reward / step, e)

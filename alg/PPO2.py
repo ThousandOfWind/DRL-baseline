@@ -43,11 +43,8 @@ class ACLearner:
 
     def get_action(self, observation, *arg):
         obs = th.FloatTensor(observation)
-        pi, value, _ = self.ac.select_action(obs=obs)
-        m = Categorical(pi)
-        action_index = m.sample()
-
-        return int(action_index), pi, value
+        action_index, value, action_log_probs, _ = self.ac.select_action(obs=obs)
+        return int(action_index), action_log_probs, value
 
     def learn(self, memory):
         batch = memory.get_current_trajectory()
@@ -75,6 +72,11 @@ class ACLearner:
             pre_value = value[i]
             pre_advantage = advangtage[i]
 
+        # # also
+        # pre_return = 0
+        # for i in range(advangtage.shape[0]-1, -1, -1):
+        #     pre_return = reward[i] + (1 - done[i]) * self.gamma * pre_return
+        #     advangtage[i] = pre_return - value[i]
 
         L_V = []
         L_P = []
@@ -105,13 +107,13 @@ class ACLearner:
 
             total_loss = loss_surr + self.loss_coeff_value * loss_value + self.loss_coeff_entropy * loss_entropy
 
-            L_P.append(loss_surr.item())
-            L_V.append(loss_value.item())
-            L_E.append(loss_entropy.item())
-
             self.optimiser.zero_grad()
             total_loss.backward()
             self.optimiser.step()
+
+            L_P.append(loss_surr.item())
+            L_V.append(loss_value.item())
+            L_E.append(loss_entropy.item())
 
 
 

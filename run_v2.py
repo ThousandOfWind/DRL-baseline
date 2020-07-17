@@ -149,7 +149,7 @@ def test(env, agent, param_set):
             agent.new_trajectory()
 
         while not terminal and step < param_set['max_step']:
-            action, prop = agent.get_action(observation, True)
+            action, prop, _ = agent.get_action(observation, True)
 
             next_observation, reward, terminal, _ = env.step(action=action)
             pos = util.get_pos(observation)

@@ -1,12 +1,14 @@
 import copy
 import torch as th
 from torch.optim import Adam
+import torch.nn.functional as F
+
 import numpy as np
 
 import os
-from .model.critic import DNN
 from .util.epsilon_schedules import DecayThenFlatSchedule
 
+from .model.ddpg_base import DDPG_Critic, DDPG_Actor
 
 class DDPG:
     """
@@ -20,31 +22,27 @@ class DDPG:
         self.learning_rate = param_set['learning_rate']
         self.n_action = param_set['n_action']
 
-        self.Q = DNN(param_set)
+        self.Q = DDPG_Critic(param_set)
+        self.actor = DDPG_Actor(param_set)
+
         self.targetQ = copy.deepcopy(self.Q)
-        self.update_frequncy = param_set['target_update_interval']
+        self.targetA = copy.deepcopy(self.actor)
+
+        self.tau = param_set['tau']
+
         self.last_update = 0
 
-        self.params = self.Q.parameters()
-        self.optimiser = Adam(params=self.params, lr=self.learning_rate)
+        self.critic_optimiser = Adam(params=self.Q.parameters(), lr=self.learning_rate)
+        self.actor_optimiser = Adam(params=self.actor.parameters(), lr=self.learning_rate)
+
         self.writer = writer
         self.step = 0
         self.batch_size = param_set['batch_size']
 
-        self.schedule = DecayThenFlatSchedule(start=param_set['epsilon_start'], finish=param_set['epsilon_end'],
-                                              time_length=param_set['time_length'], decay="linear")
-
     def get_action(self, observation, greedy=False):
         obs = th.FloatTensor(observation)
-        if np.random.rand() < self.schedule.eval(self.step) and not greedy:
-            action_index = np.random.randint(0, self.n_action)
-            q = th.full((self.n_action,), 1/self.n_action)
-        else:
-            q = self.Q(obs=obs)
-            # print(q)
-            action_index = int(q.argmax())
-
-        return action_index, q
+        action = self.actor(obs)
+        return action
 
     def learn(self, memory):
         batch = memory.get_sample(batch_size=self.batch_size)
@@ -56,24 +54,30 @@ class DDPG:
         reward = th.FloatTensor(batch['reward'])
         done = th.FloatTensor(batch['done'])
 
-        q = self.Q(obs)
-        chose_q = th.gather(q, dim=1, index=action_index.unsqueeze(-1)).squeeze(-1)
+        currentQ = self.Q(obs, action_index)
+        targetQ = (reward + self.gamma * (1-done) * self.targetQ(next_obs, self.targetA(next_obs))).detach()
+        critic_loss = F.mse_loss(currentQ, targetQ)
+        self.writer.add_scalar('Loss/TD_loss', critic_loss.item(), self.step )
 
-        next_qmax = self.targetQ(next_obs).max().squeeze(-1)
-        target_q = reward + self.gamma * (1-done) * next_qmax
-        td_error = chose_q - target_q.detach()
-        td_loss = (td_error ** 2).mean()
 
-        self.writer.add_scalar('Loss/TD_loss', td_loss.item(), self.step )
-        self.optimiser.zero_grad()
-        td_loss.backward()
-        grad_norm = th.nn.utils.clip_grad_norm_(self.params, 10)
-        self.optimiser.step()
+        # Optimize the critic
+        self.critic_optimiser.zero_grad()
+        critic_loss.backward()
+        self.critic_optimiser.step()
 
-        self.step += 1
-        if self.step - self.last_update > self.update_frequncy:
-            self.last_update = self.step
-            self.targetQ.load_state_dict(self.Q.state_dict())
+        actor_loss = - self.Q(obs, self.actor(obs))
+        self.writer.add_scalar('Loss/pi_loss', actor_loss.item(), self.step )
+
+        self.actor_optimiser.zero_grad()
+        actor_loss.backward()
+        self.actor_optimiser.step()
+
+        for param, target_param in zip(self.Q.parameters(), self.targetQ.parameters()):
+            target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
+
+        for param, target_param in zip(self.actor.parameters(), self.targetA.parameters()):
+            target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
+
 
 
 

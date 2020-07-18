@@ -109,6 +109,21 @@ PPO2 = {
     'loss_coeff_entropy': 0.01
 }
 
+DDPG = {
+    'mamory_size': 100000,
+    'alg': 'QLearning',
+    'soft': False,
+    'gamma': 0.99,
+    'learning_rate': 0.001,
+    'n_episode': 5000,
+    'hidden_dim': 64,
+    'batch_size': 128,
+    'memory_type': 'os',
+    'tau': 0.005,
+    'epsilon_start': 0.5,
+    'epsilon_end': 0.01,
+    'time_length': 40000,
+}
 
 
 PARAM['REINFORCE'] = REINFORCE

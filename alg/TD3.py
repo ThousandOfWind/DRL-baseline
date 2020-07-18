@@ -33,7 +33,8 @@ class DDPG:
 
         self.tau = param_set['tau']
         self.step = 0
-
+        self.last_update = 0
+        self.pi_update_frequncy = param_set['pi_target_update_interval']
 
         self.writer = writer
         self.batch_size = param_set['batch_size']
@@ -53,31 +54,35 @@ class DDPG:
         reward = th.FloatTensor(batch['reward'])
         done = th.FloatTensor(batch['done'])
 
-        currentQ = self.Q(obs, action_index)
-        targetQ = (reward + self.gamma * (1-done) * self.targetQ(next_obs, self.targetA(next_obs))).detach()
-        critic_loss = F.mse_loss(currentQ, targetQ)
+        currentQ1, currentQ2  = self.Q(obs, action_index)
+        targetQ1, targetQ2 = self.targetQ(next_obs, self.targetA(next_obs))
+        targetQ = th.min(targetQ1, targetQ2)
+        targetQ = (reward + self.gamma * (1-done) * targetQ).detach()
+        critic_loss = F.mse_loss(currentQ1, targetQ) + F.mse_loss(currentQ2, targetQ)
         self.writer.add_scalar('Loss/TD_loss', critic_loss.item(), self.step )
-
 
         # Optimize the critic
         self.critic_optimiser.zero_grad()
         critic_loss.backward()
         self.critic_optimiser.step()
 
-        actor_loss = - self.Q(obs, self.actor(obs))
-        self.writer.add_scalar('Loss/pi_loss', actor_loss.item(), self.step )
-
-        self.actor_optimiser.zero_grad()
-        actor_loss.backward()
-        self.actor_optimiser.step()
-
         self.step += 1
+        if self.step - self.last_update > self.pi_update_frequncy:
+            self.last_update = self.step
+            q1, q2 = - self.Q(obs, self.actor(obs))
+            actor_loss = - q1
 
-        for param, target_param in zip(self.Q.parameters(), self.targetQ.parameters()):
-            target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
+            self.writer.add_scalar('Loss/pi_loss', actor_loss.item(), self.step )
 
-        for param, target_param in zip(self.actor.parameters(), self.targetA.parameters()):
-            target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
+            self.actor_optimiser.zero_grad()
+            actor_loss.backward()
+            self.actor_optimiser.step()
+
+            for param, target_param in zip(self.Q.parameters(), self.targetQ.parameters()):
+                target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
+
+            for param, target_param in zip(self.actor.parameters(), self.targetA.parameters()):
+                target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
 
 
 

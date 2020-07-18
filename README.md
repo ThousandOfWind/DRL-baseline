@@ -13,6 +13,8 @@
 * QAC
 * QAC with shared network
 * PPO2
+* DDPG
+* TD3
 
 ### 可以配合以下内容服用
 [强化学习策略梯度梳理1 - REINFORCE（附代码）](https://blog.csdn.net/thousandsofwind/article/details/107081358) 
@@ -29,7 +31,7 @@
 
 ## 计划要完成的其他方法包括
 * Rainbow
-* DDPG
+* DDPG (离散动作)
 * SAC
 * A3C
 

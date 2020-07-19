@@ -10,7 +10,9 @@ from .util.epsilon_schedules import DecayThenFlatSchedule
 
 from .model.ddpg_base import DDPG_Critic, DDPG_Actor
 
-class TD3:
+
+# TODO 修改，现在还是TD3
+class SAC:
     """
     1. DQN- RNNAgent
     2. train
@@ -26,7 +28,8 @@ class TD3:
         self.actor = DDPG_Actor(param_set)
 
         self.targetQ = copy.deepcopy(self.Q)
-        self.targetA = copy.deepcopy(self.actor)
+
+
 
         self.critic_optimiser = Adam(params=self.Q.parameters(), lr=self.learning_rate)
         self.actor_optimiser = Adam(params=self.actor.parameters(), lr=self.learning_rate)

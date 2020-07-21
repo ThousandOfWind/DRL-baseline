@@ -133,7 +133,7 @@ class SAC_Actor( nn.Module):
         x = F.tanh(self.actor_fc2(x))
         mu, log_std = self.actor_fc3(x).chunk(2, dim=-1)
 
-        log_std = th.clamp(log_std, self.log_std_bound[0], self.log_std_bound[1])
+        log_std = log_std.clamp(*self.log_std_bound)
         std = log_std.exp()
 
         return TanhNormal(mu, std)

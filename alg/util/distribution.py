@@ -55,3 +55,22 @@ class TanhNormal(Distribution):
             return torch.tanh(z), z
         else:
             return torch.tanh(z)
+
+    def rsample(self, return_pretanh_value=False):
+        """
+        Sampling in the reparameterization case.
+        """
+        z = (
+            self.normal_mean +
+            self.normal_std *
+            Normal(
+                torch.zeros(self.normal_mean.size()),
+                torch.ones(self.normal_std.size())
+            ).sample()
+        )
+        z.requires_grad_()
+
+        if return_pretanh_value:
+            return torch.tanh(z), z
+        else:
+            return torch.tanh(z)

@@ -21,6 +21,7 @@ class TD3:
         self.gamma = param_set['gamma']
         self.learning_rate = param_set['learning_rate']
         self.n_action = param_set['n_action']
+        self.action_range = param_set['action_range']
 
         self.Q = TD3_Critic(param_set)
         self.actor = DDPG_Actor(param_set)
@@ -42,6 +43,8 @@ class TD3:
     def get_action(self, observation, greedy=False):
         obs = th.FloatTensor(observation)
         action = self.actor(obs)
+        action = action.clamp(*self.action_range)
+
         return action
 
     def learn(self, memory):
@@ -66,6 +69,9 @@ class TD3:
         critic_loss.backward()
         self.critic_optimiser.step()
 
+        for param, target_param in zip(self.Q.parameters(), self.targetQ.parameters()):
+            target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
+
         self.step += 1
         if self.step - self.last_update > self.pi_update_frequncy:
             self.last_update = self.step
@@ -77,10 +83,6 @@ class TD3:
             self.actor_optimiser.zero_grad()
             actor_loss.backward()
             self.actor_optimiser.step()
-
-            for param, target_param in zip(self.Q.parameters(), self.targetQ.parameters()):
-                target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
-
             for param, target_param in zip(self.actor.parameters(), self.targetA.parameters()):
                 target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
 

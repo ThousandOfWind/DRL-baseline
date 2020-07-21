@@ -147,17 +147,21 @@ SAC = {
     'alg': 'QLearning',
     'soft': False,
     'gamma': 0.99,
-    'learning_rate': 0.001,
+    'Q_learning_rate': 0.001,
+    'Policy_learning_rate': 0.001,
     'n_episode': 5000,
     'hidden_dim': 64,
     'batch_size': 128,
     'memory_type': 'os',
     'tau': 0.005,
-    'pi_target_update_interval': 2,
+    'target_Q_update_interval': 2,
+    'pi_update_interval': 2,
     'epsilon_start': 0.5,
     'epsilon_end': 0.01,
     'time_length': 40000,
     'log_std_bound': (),
+    'init_alpha': 1,
+    'learnable_alpha': False
 }
 
 

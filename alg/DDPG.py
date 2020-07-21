@@ -21,6 +21,8 @@ class DDPG:
         self.gamma = param_set['gamma']
         self.learning_rate = param_set['learning_rate']
         self.n_action = param_set['n_action']
+        self.action_range = param_set['action_range']
+
 
         self.Q = DDPG_Critic(param_set)
         self.actor = DDPG_Actor(param_set)
@@ -41,6 +43,7 @@ class DDPG:
     def get_action(self, observation, greedy=False):
         obs = th.FloatTensor(observation)
         action = self.actor(obs)
+        action = action.clamp(*self.action_range)
         return action
 
     def learn(self, memory):

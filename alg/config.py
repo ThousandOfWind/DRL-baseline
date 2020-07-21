@@ -157,6 +157,7 @@ SAC = {
     'epsilon_start': 0.5,
     'epsilon_end': 0.01,
     'time_length': 40000,
+    'log_std_bound': (),
 }
 
 

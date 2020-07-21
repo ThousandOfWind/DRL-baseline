@@ -8,7 +8,7 @@ import numpy as np
 import os
 from .util.epsilon_schedules import DecayThenFlatSchedule
 
-from .model.ddpg_base import DDPG_Critic, DDPG_Actor
+from .model.ddpg_base import TD3_Critic, DDPG_Actor
 
 class TD3:
     """
@@ -22,7 +22,7 @@ class TD3:
         self.learning_rate = param_set['learning_rate']
         self.n_action = param_set['n_action']
 
-        self.Q = DDPG_Critic(param_set)
+        self.Q = TD3_Critic(param_set)
         self.actor = DDPG_Actor(param_set)
 
         self.targetQ = copy.deepcopy(self.Q)

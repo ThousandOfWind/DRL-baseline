@@ -8,10 +8,8 @@ import numpy as np
 import os
 from .util.epsilon_schedules import DecayThenFlatSchedule
 
-from .model.ddpg_base import DDPG_Critic, DDPG_Actor
+from .model.ddpg_base import TD3_Critic, SAC_Actor
 
-
-# TODO 修改，现在还是TD3
 class SAC:
     """
     1. DQN- RNNAgent
@@ -24,12 +22,10 @@ class SAC:
         self.learning_rate = param_set['learning_rate']
         self.n_action = param_set['n_action']
 
-        self.Q = DDPG_Critic(param_set)
-        self.actor = DDPG_Actor(param_set)
+        self.Q = TD3_Critic(param_set)
+        self.actor = SAC_Actor(param_set)
 
         self.targetQ = copy.deepcopy(self.Q)
-
-
 
         self.critic_optimiser = Adam(params=self.Q.parameters(), lr=self.learning_rate)
         self.actor_optimiser = Adam(params=self.actor.parameters(), lr=self.learning_rate)
@@ -42,9 +38,10 @@ class SAC:
         self.writer = writer
         self.batch_size = param_set['batch_size']
 
-    def get_action(self, observation, greedy=False):
+    def get_action(self, observation, sample=False):
         obs = th.FloatTensor(observation)
-        action = self.actor(obs)
+        dist = self.actor(obs)
+        action = dist.sample() if sample else dist.mean
         return action
 
     def learn(self, memory):

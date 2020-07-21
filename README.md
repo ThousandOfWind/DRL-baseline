@@ -26,9 +26,11 @@
 
 包括 one-step AC、 QAC、 QAC with shared network
 
-[强化学习策略梯度梳理3-SOTA（附代码）](https://blog.csdn.net/thousandsofwind/article/details/107209674)
-
+[强化学习策略梯度梳理3-SOTA 上](https://blog.csdn.net/thousandsofwind/article/details/107209674)
 包括PPO2
+
+[SOTA 中](https://blog.csdn.net/thousandsofwind/article/details/107420872)
+包括DDPG，TD3，SAC
 
 ## 计划要复现的其他方法包括
 * Rainbow

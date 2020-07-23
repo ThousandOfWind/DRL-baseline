@@ -4,6 +4,7 @@ import cv2 as cv
 import numpy as np
 from torchvision.utils import make_grid
 from tensorboardX import SummaryWriter
+import math
 
 
 from alg import Learner
@@ -132,7 +133,7 @@ class Util:
         j = obs[2]
         i = int((i-self.I_l)* self.I_scale)
         j = int((j-self.J_l)* self.J_scale)
-        return (i,j)
+        return [i,j]
 
 
 def test(env, agent, param_set):
@@ -153,7 +154,7 @@ def test(env, agent, param_set):
 
             next_observation, reward, terminal, _ = env.step(action=action)
             pos = util.get_pos(observation)
-            img_action_intend[pos[0],pos[1], 1:] += prop.detach().numpy()
+            img_action_intend[pos[0],pos[1], 1:] += math.exp(prop)
             observation = next_observation
             step += 1
             total_reward += reward

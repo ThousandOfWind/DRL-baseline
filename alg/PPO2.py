@@ -60,6 +60,10 @@ class PPOLearner:
         old_action_log_prob = th.FloatTensor(batch['action_log_prob'])
         value = th.FloatTensor(batch['value'])
 
+        # value, _ = self.ac.get_value(obs=obs)
+        # value = value.detach()
+
+
         # advantage
         advangtage = th.zeros_like(reward)
         returns = th.zeros_like(reward)
@@ -74,6 +78,7 @@ class PPOLearner:
             pre_return = returns[i]
             pre_value = value[i]
             pre_advantage = advangtage[i]
+
 
         # # also
         # pre_return = 0
@@ -98,7 +103,7 @@ class PPOLearner:
                 = self.ac.evaluate_actions(obs=minibatch_obs, action=minibatch_action_index)
             ratio = th.exp(minibatch_old_action_log_prob - minibatch_new_action_log_prob)
             surr1 = ratio * minibatch_advantange
-            surr2 = ratio.clamp( 1 - self.clip, 1 + self.clip)
+            surr2 = ratio.clamp( 1 - self.clip, 1 + self.clip)  * minibatch_advantange
             loss_surr = - th.mean(th.min(surr1, surr2))
 
             if self.lossvalue_norm:

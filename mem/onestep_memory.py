@@ -13,7 +13,9 @@ class Memmory:
             'action_index': [],
             'next_obs': [],
             'reward': [],
-            'done': []
+            'done': [],
+            'action_log_prob': [],
+            'value': [],
         }
 
     def append(self, exprience):

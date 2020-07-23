@@ -58,7 +58,7 @@ class MLPBase(NNBase):
 
 
         self.actor_fc1 = nn.Linear(input_len, self.hidden_dim)
-        self.actor_fc2 = nn.Linear(input_len, self.hidden_dim)
+        self.actor_fc2 = nn.Linear(self.hidden_dim, self.hidden_dim)
         self.actor_fc3 = nn.Linear(self.hidden_dim, n_action)
 
         self.critic_fc1 = nn.Linear(input_len, self.hidden_dim)
@@ -131,7 +131,7 @@ class Policy(nn.Module):
         raise NotImplementedError
 
     def select_action(self, obs, rnn_hxs=None, masks=None, deterministic=False):
-        pi, value, rnn_hxs = self.forward(obs, rnn_hxs, masks)
+        pi, value, rnn_hxs = self.base.forward(obs, rnn_hxs, masks)
 
         m = Categorical(pi)
         action_index = m.sample()
@@ -140,12 +140,11 @@ class Policy(nn.Module):
         return action_index, value, action_log_probs, rnn_hxs
 
     def get_value(self, obs, rnn_hxs=None, masks=None):
-        value, rnn_hxs = self.forward_critic(obs, rnn_hxs, masks)
+        value, rnn_hxs = self.base.forward_critic(obs, rnn_hxs, masks)
         return value, rnn_hxs
 
     def evaluate_actions(self, obs, action, last_rnn_hxs=None, masks=None):
-        pi, rnn_hxs = self.forward_actor(obs, last_rnn_hxs, masks)
-        value, rnn_hxs = self.forward_critic(obs, last_rnn_hxs, masks)
+        pi, value, rnn_hxs = self.base.forward(obs, last_rnn_hxs, masks)
 
         m = Categorical(pi)
         action_log_probs = m.log_prob(action)

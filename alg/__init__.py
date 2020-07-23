@@ -5,6 +5,7 @@ from .QAC import ACLearner as QAC
 from .QAC_sharednet import ACLearner as QAC_SN
 
 from .oneStep_AC import ACLearner as OS_AC
+from .PPO2 import PPOLearner
 
 
 from .Qlearning import QLearner
@@ -16,5 +17,6 @@ Learner = {
     'AC': ACLearner,
     'QAC': QAC,
     'QAC-SN': QAC_SN,
-    'OS-AC': OS_AC
+    'OS-AC': OS_AC,
+    'PPO2': PPOLearner,
 }

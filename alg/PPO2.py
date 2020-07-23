@@ -13,7 +13,7 @@ import os
 from .model.actor_critic import Policy
 
 
-class ACLearner:
+class PPOLearner:
     """
     1. DQN- RNNAgent
     2. train
@@ -44,16 +44,19 @@ class ACLearner:
     def get_action(self, observation, *arg):
         obs = th.FloatTensor(observation)
         action_index, value, action_log_probs, _ = self.ac.select_action(obs=obs)
-        return int(action_index), action_log_probs, value
+        return int(action_index), action_log_probs.detach().numpy(), value.detach().numpy()
 
     def learn(self, memory):
         batch = memory.get_current_trajectory()
+        if len(batch['observation']) < self.batch_size:
+            return
 
         obs = th.FloatTensor(batch['observation'])
         action_index = th.LongTensor(batch['action_index'])
         next_obs = th.FloatTensor(batch['next_obs'])
         reward = th.FloatTensor(batch['reward'])
         done = th.FloatTensor(batch['done'])
+        batch['action_log_prob'] = np.stack(batch['action_log_prob'], axis=0)
         old_action_log_prob = th.FloatTensor(batch['action_log_prob'])
         value = th.FloatTensor(batch['value'])
 
@@ -88,10 +91,11 @@ class ACLearner:
             minibatch_old_action_log_prob = old_action_log_prob[minibatch_ind]
             minibatch_advantange = advangtage[minibatch_ind]
             minibatch_return = returns[minibatch_ind]
+            minibatch_action_index = action_index[minibatch_ind]
 
 
             minibatch_new_value, minibatch_new_action_log_prob, minibatch_dist_entropy, _ \
-                = self.ac.evaluate_actions(obs=minibatch_obs, action=action_index)
+                = self.ac.evaluate_actions(obs=minibatch_obs, action=minibatch_action_index)
             ratio = th.exp(minibatch_old_action_log_prob - minibatch_new_action_log_prob)
             surr1 = ratio * minibatch_advantange
             surr2 = ratio.clamp( 1 - self.clip, 1 + self.clip)
@@ -124,10 +128,6 @@ class ACLearner:
         self.writer.add_scalar('Loss/loss', sum(L_P) + sum(L_V) + sum(L_E), self._episode)
 
 
-        self.optimiser.zero_grad()
-        loss.backward()
-        grad_norm = th.nn.utils.clip_grad_norm_(self.params, 10)
-        self.optimiser.step()
 
         self._episode += 1
 

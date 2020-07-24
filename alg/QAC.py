@@ -51,7 +51,7 @@ class ACLearner:
             pi, self.hidden = self.pi(obs=obs_, hidden=self.hidden)
             pi = pi.squeeze(0)
         else:
-            pi = self.pi(obs=obs)
+            pi = self.pi(obs=obs).squeeze(0)
         m = Categorical(pi)
         action_index = m.sample()
 

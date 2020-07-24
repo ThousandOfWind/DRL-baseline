@@ -34,7 +34,7 @@ QLearning = {
     'hidden_dim': 64,
     'batch_size': 128,
     'memory_type': 'os',
-    'target_update_interval': 40000,
+    'target_update_interval': 4000,
     'epsilon_start': 0.5,
     'epsilon_end': 0.01,
     'time_length': 40000,
@@ -90,7 +90,7 @@ QAC_rnn = {
 }
 
 PPO2 = {
-    'mamory_size': 1000,
+    'mamory_size': 2000,
     'alg': 'PPO2',
     'soft': True,
     'clip': 0.2,
@@ -106,7 +106,8 @@ PPO2 = {
     'ppo_epoch': 10,
     'lossvalue_norm': True,
     'loss_coeff_value': 0.5,
-    'loss_coeff_entropy': 0.01
+    'loss_coeff_entropy': 0.01,
+    'min_pi': 1e-8,
 }
 
 DDPG = {
@@ -120,7 +121,7 @@ DDPG = {
     'batch_size': 128,
     'memory_type': 'os',
     'tau': 0.005,
-    'epsilon_start': 0.5,
+    'epsilon_start': 0.8,
     'epsilon_end': 0.01,
     'time_length': 40000,
 }

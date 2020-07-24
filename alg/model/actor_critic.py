@@ -50,6 +50,7 @@ class MLPBase(NNBase):
         n_action = param_set['n_action']
         recurrent = param_set['rnn']
         layer_norm = param_set['layer_norm']
+        self.min_pi = param_set['min_pi']
 
         super(MLPBase, self).__init__(recurrent, input_len, self.hidden_dim)
 
@@ -90,8 +91,9 @@ class MLPBase(NNBase):
 
         a = F.tanh(self.actor_fc1(x))
         a = F.tanh(self.actor_fc2(a))
-        action = F.softmax(th.exp(self.actor_fc3(a)), dim=-1)
-
+        a = th.exp(self.actor_fc3(a))
+        a = th.clamp(a, min=self.min_pi)
+        action = F.softmax(a, dim=-1)
 
         c = F.tanh(self.critic_fc1(x))
         c = F.tanh(self.critic_fc2(c))

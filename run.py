@@ -14,7 +14,7 @@ import copy
 import numpy as np
 import torch as th
 
-ENV_NAME = 'CartPole-v1'  # Environment name
+ENV_NAME = 'Asterix-ram-v0' #'CartPole-v1'  # Environment name
 
 EPISODIC_TRAIN = ['REINFORCE', 'REINFORCE-B', 'QAC', 'QAC-SN', 'OS-AC', 'QAC-rnn']
 
@@ -22,13 +22,13 @@ EPISODIC_TRAIN = ['REINFORCE', 'REINFORCE-B', 'QAC', 'QAC-SN', 'OS-AC', 'QAC-rnn
 def init():
     env = gym.make(ENV_NAME)
 
-    # param_set = copy.deepcopy(PARAM['QLearning'])
+    param_set = copy.deepcopy(PARAM['QLearning'])
     # param_set = copy.deepcopy(PARAM['REINFORCE'])
     # param_set = copy.deepcopy(PARAM['REINFORCE-B'])
     # param_set = copy.deepcopy(PARAM['QAC'])
     # param_set = copy.deepcopy(PARAM['QAC-SN'])
     # param_set = copy.deepcopy(PARAM['OS-AC'])
-    param_set = copy.deepcopy(PARAM['QAC-rnn'])
+    # param_set = copy.deepcopy(PARAM['QAC-rnn'])
     # param_set = copy.deepcopy(PARAM['QLearning-rnn'])
 
 

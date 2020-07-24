@@ -15,7 +15,7 @@ import copy
 import numpy as np
 import torch as th
 
-ENV_NAME = 'CartPole-v1'  # Environment name
+ENV_NAME = 'Asterix-ram-v0' #'CartPole-v1'  # Environment name
 
 EPISODIC_TRAIN = ['REINFORCE', 'REINFORCE-B', 'QAC', 'QAC-SN', 'OS-AC', 'QAC-rnn']
 
@@ -38,7 +38,7 @@ def init():
         'random_seed': random.randint(0, 1000),
         'n_action': env.action_space.n,
         'obs_shape': env.observation_space.shape,
-        'max_step': env._max_episode_steps,
+        'max_step':  env._max_episode_steps,
     }
     param_set.update(env_param)
 

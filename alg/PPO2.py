@@ -80,11 +80,13 @@ class PPOLearner:
             pre_advantage = advangtage[i]
 
 
-        # # also
+        # # also 但是但是会导致action_index = m.sample()报错
         # pre_return = 0
         # for i in range(advangtage.shape[0]-1, -1, -1):
-        #     pre_return = reward[i] + (1 - done[i]) * self.gamma * pre_return
+        #     returns[i] = reward[i] + (1 - done[i]) * self.gamma * pre_return
         #     advangtage[i] = pre_return - value[i]
+        #     pre_return = returns[i]
+
 
         L_V = []
         L_P = []

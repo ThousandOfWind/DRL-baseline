@@ -10,11 +10,7 @@ from .util.epsilon_schedules import DecayThenFlatSchedule
 
 from .model.sacd_base import SAC_discrete_Critic, SAC_discrete_Actor
 
-class SAC:
-    """
-    1. DQN- RNNAgent
-    2. train
-    """
+class SAC_Discrete:
     def __init__(self, param_set, writer):
 
         self.obs_shape = param_set['obs_shape'][0]

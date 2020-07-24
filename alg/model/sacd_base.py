@@ -2,7 +2,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch as th
 from torch.distributions import Categorical
-from ..util.distribution import TanhNormal
 
 
 class DNN(nn.Module):
@@ -111,7 +110,6 @@ class SAC_discrete_Actor( nn.Module):
         pi = F.softmax(x, dim=-1)
         m = Categorical(pi)
         action_index = m.sample()
-        action_log_probs = m.log_prob(action_index)
-
+        action_log_probs = pi.log()
 
         return action_index, action_log_probs, pi

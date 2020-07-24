@@ -73,7 +73,7 @@ class SAC:
 
         currentQ1, currentQ2  = self.Q(obs, action_index)
 
-        next_dist = self.actor(obs)
+        next_dist = self.actor(next_obs)
         next_action = next_dist.rsample()
         targetnextQ1, targetnextQ2 = self.targetQ(next_obs, next_action)
 
@@ -98,9 +98,11 @@ class SAC:
             action = dist.rsample()
             q1, q2 = - self.Q(obs, action)
             q = th.min(q1, q2)
+
+            # .sum(-1, keepdim=True) 感觉不应该存在呀
             log_prob = dist.log_prob(action).sum(-1, keepdim=True)
 
-            actor_loss = self.alpha.detach() * log_prob - q
+            actor_loss = (self.alpha.detach() * log_prob - q).mean()
 
             self.writer.add_scalar('Loss/pi_loss', actor_loss.item(), self.step)
             self.actor_optimiser.zero_grad()

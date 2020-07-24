@@ -8,7 +8,7 @@ import numpy as np
 import os
 from .util.epsilon_schedules import DecayThenFlatSchedule
 
-from .model.ddpg_base import TD3_Critic, SAC_Actor
+from .model.sacd_base import SAC_discrete_Critic, SAC_discrete_Actor
 
 class SAC:
     """
@@ -26,8 +26,8 @@ class SAC:
         self.n_action = param_set['n_action']
         self.action_range = param_set['action_range']
 
-        self.Q = TD3_Critic(param_set)
-        self.actor = SAC_Actor(param_set)
+        self.Q = SAC_discrete_Critic(param_set)
+        self.actor = SAC_discrete_Actor(param_set)
         self.targetQ = copy.deepcopy(self.Q)
 
         self.log_alpha = th.tensor(np.log(param_set['init_alpha'])).to(self.device)
@@ -54,10 +54,8 @@ class SAC:
 
     def get_action(self, observation, sample=False):
         obs = th.FloatTensor(observation)
-        dist = self.actor(obs)
-        action = dist.sample() if sample else dist.mean
-        action = action.clamp(*self.action_range)
-        return action
+        action_index, action_log_probs, pi = self.actor(obs)
+        return action_index
 
     def learn(self, memory):
         batch = memory.get_sample(batch_size=self.batch_size)
@@ -71,14 +69,18 @@ class SAC:
         reward = th.FloatTensor(batch['reward'])
         done = th.FloatTensor(batch['done'])
 
-        currentQ1, currentQ2  = self.Q(obs, action_index)
+        # targetnextQ1, targetnextQ2 = self.targetQ(next_obs)
+        # next_log_prob = next_dist.log_prob(next_action).sum(-1, keepdim=True)
+        # targetV = th.min(targetnextQ1, targetnextQ2) - self.alpha * next_log_prob
 
-        next_dist = self.actor(obs)
-        next_action = next_dist.rsample()
-        targetnextQ1, targetnextQ2 = self.targetQ(next_obs, next_action)
+        currentQ1, currentQ2  = self.Q(obs)
+        currentQ1 = currentQ1.gather(1, action_index)
+        currentQ2 = currentQ2.gather(1, action_index)
 
-        next_log_prob = next_dist.log_prob(next_action).sum(-1, keepdim=True)
-        targetV = th.min(targetnextQ1, targetnextQ2) - self.alpha * next_log_prob
+        next_action_index, next_action_log_probs, next_pi = self.actor(next_obs)
+        target_next_Q = th.min(self.targetQ(next_obs))
+        targetV = (next_pi * (target_next_Q - self.alpha * next_action_log_probs)).sum(dim=1, keepdim=True)
+
         targetQ = (reward + self.gamma * (1-done) * targetV).detach()
         critic_loss = F.mse_loss(currentQ1, targetQ) + F.mse_loss(currentQ2, targetQ)
         self.writer.add_scalar('Loss/TD_loss', critic_loss.item(), self.step )
@@ -94,13 +96,11 @@ class SAC:
                 target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
 
         if self.step % self.pi_update_interval == 0:
-            dist = self.actor(obs)
-            action = dist.rsample()
-            q1, q2 = - self.Q(obs, action)
-            q = th.min(q1, q2)
-            log_prob = dist.log_prob(action).sum(-1, keepdim=True)
-
-            actor_loss = self.alpha.detach() * log_prob - q
+            action_index, action_log_probs, pi = self.actor(obs)
+            q1, q2 = - self.Q(obs)
+            q = (th.min(q1, q2) * pi).sum(dim=1, keepdim=True)
+            entropies = -(action_log_probs * pi).sum(dim=1, keepdim=True)
+            actor_loss = (- self.alpha.detach() * entropies - q).mean()
 
             self.writer.add_scalar('Loss/pi_loss', actor_loss.item(), self.step)
             self.actor_optimiser.zero_grad()
@@ -110,7 +110,7 @@ class SAC:
             if self.learnable_alpha:
                 self.alpha_optimiser.zero_grad()
                 alpha_loss = (self.alpha *
-                              (-log_prob - self.target_entropy).detach()).mean()
+                              (entropies.detach() - self.target_entropy).detach()).mean()
                 self.writer.add_scalar('Loss/alpha_loss', alpha_loss.item(), self.step)
                 self.writer.add_scalar('network/alpha', self.alpha.item(), self.step)
 

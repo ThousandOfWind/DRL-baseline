@@ -4,11 +4,14 @@ import cv2 as cv
 import numpy as np
 from torchvision.utils import make_grid
 from tensorboardX import SummaryWriter
+import torch.multiprocessing as mp
 
 
 from alg import Learner
 from mem import Memory
 from alg.config import PARAM
+from alg.model import ac_sharenet
+from alg.util.my_adam import SharedAdam
 
 import copy
 import numpy as np
@@ -21,18 +24,7 @@ EPISODIC_TRAIN = ['REINFORCE', 'REINFORCE-B', 'QAC', 'QAC-SN', 'OS-AC', 'QAC-rnn
 
 def init():
     env = gym.make(ENV_NAME)
-
-    # param_set = copy.deepcopy(PARAM['QLearning'])
-    # param_set = copy.deepcopy(PARAM['REINFORCE'])
-    # param_set = copy.deepcopy(PARAM['REINFORCE-B'])
-    # param_set = copy.deepcopy(PARAM['QAC'])
-    param_set = copy.deepcopy(PARAM['QAC-SN'])
-    # param_set = copy.deepcopy(PARAM['OS-AC'])
-    # param_set = copy.deepcopy(PARAM['QAC-rnn'])
-    # param_set = copy.deepcopy(PARAM['QLearning-rnn'])
-    # param_set = copy.deepcopy(PARAM['SAC-discrete'])
-
-
+    param_set = copy.deepcopy(PARAM['A3C'])
     env_param = {
         'test_episode': 4,
         'random_seed': random.randint(0, 1000),
@@ -43,18 +35,21 @@ def init():
     param_set.update(env_param)
 
     np.random.seed(param_set['random_seed'])
-    th.manual_seed(param_set['random_seed'])
+    # th.manual_seed(param_set['random_seed'])
 
     param_set['path'] = ENV_NAME + '/' + param_set['alg'] + '/' + str(param_set['random_seed'])
 
     writer = SummaryWriter('logs/' + param_set['path'])
-    agent = Learner[param_set['alg']](param_set, writer)
+    env.close()
 
+    return writer, param_set
+
+def run(writer, param_set, share_model):
+    param_set['worker_id'] = i
+    agent = Learner['A3C'](param_set, writer, share_model, optimizer)
     memory = Memory[param_set['memory_type']](param_set)
+    env = gym.make(ENV_NAME)
 
-    return env, agent, memory, writer, param_set
-
-def run(env, agent, memory, writer, param_set):
     for e in range(param_set['n_episode']):
         terminal = False
         observation = env.reset()
@@ -161,6 +156,16 @@ def test(env, agent, param_set):
 
 
 if __name__ == '__main__':
-    env, agent, memory, writer, param_set = init()
-    run(env, agent, memory, writer, param_set)
-    test(env, agent, param_set)
+    writer, param_set = init()
+
+    share_model = ac_sharenet(param_set)
+    optimizer = SharedAdam(share_model.parameters(), lr=param_set['learning_rate'])
+    optimizer.share_memory()
+    processes = []
+
+    for i in range(param_set['num_processes']):
+        p = mp.Process(target=run, args=(writer, param_set, share_model, optimizer))
+        p.start()
+        processes.append(p)
+    for p in processes:
+        p.join()

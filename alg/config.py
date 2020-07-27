@@ -200,9 +200,10 @@ A3C = {
     'hidden_dim': 128,
     'memory_type': 'ep',
     'rnn': False,
-    'clone_share_model':False,
+    'clone_share_model':True,
     'soft_clone': False,
     'tau': 0.005,
+    'num_processes': 4
 }
 
 

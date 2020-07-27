@@ -14,7 +14,7 @@ class ACLearner:
     2. train
     """
 
-    def __init__(self, param_set, writer, share_model:DNNAgent):
+    def __init__(self, param_set, writer, share_model:DNNAgent, optimizer):
         self.obs_shape = param_set['obs_shape'][0]
         self.gamma = param_set['gamma']
         self.learning_rate = param_set['learning_rate']
@@ -31,7 +31,7 @@ class ACLearner:
             self.ac = DNNAgent(param_set)
 
         self.params = share_model.parameters()
-        self.optimiser = Adam(params=self.params, lr=self.learning_rate)
+        self.optimiser = optimizer
         self.writer = writer
         self._episode = 0
 
@@ -81,19 +81,19 @@ class ACLearner:
 
 
         # advantage
-        advangtage = th.zeros_like(reward)
+        advantage = th.zeros_like(reward)
         returns = th.zeros_like(reward)
         deltas = th.zeros_like(reward)
         pre_return = 0
         pre_value = 0
         pre_advantage = 0
-        for i in range(advangtage.shape[0]-1, -1, -1):
+        for i in range(advantage.shape[0]-1, -1, -1):
             returns[i] = reward[i] + self.gamma * pre_return
             deltas[i] = reward[i] + self.gamma * pre_value - value[i]
-            advangtage[i] = deltas[i] + self.gamma * self.lamda * pre_advantage
+            advantage[i] = deltas[i] + self.gamma * self.lamda * pre_advantage
             pre_return = returns[i]
             pre_value = value[i]
-            pre_advantage = advangtage[i]
+            pre_advantage = advantage[i]
 
 
         mask = th.ones_like(value)
@@ -102,12 +102,14 @@ class ACLearner:
 
         td_error = reward + self.gamma * next_value.detach() - value
         td_loss = (td_error ** 2).mean()
-        J = - (advangtage.detach() * log_pi).mean()
-
+        entropies = -(log_pi * log_pi.exp()).sum(dim=1, keepdim=True)
+        J = - (advantage.detach() * log_pi + entropies).mean()
         loss = J + td_loss
 
         self.writer.add_scalar('Loss/J_' + str(self.id), J.item(), self._episode)
         self.writer.add_scalar('Loss/TD_loss_' + str(self.id), td_loss.item(), self._episode)
+        self.writer.add_scalar('Loss/Entropy_' + str(self.id), entropies.mean().item(), self.step)
+
         self.writer.add_scalar('Loss/loss_' + str(self.id), loss.item(), self._episode)
 
 

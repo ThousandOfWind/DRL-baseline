@@ -57,19 +57,19 @@ class ACLearner:
 
 
         # advantage
-        advangtage = th.zeros_like(reward)
+        advantage = th.zeros_like(reward)
         returns = th.zeros_like(reward)
         deltas = th.zeros_like(reward)
         pre_return = 0
         pre_value = 0
         pre_advantage = 0
-        for i in range(advangtage.shape[0]-1, -1, -1):
+        for i in range(advantage.shape[0]-1, -1, -1):
             returns[i] = reward[i] + self.gamma * pre_return
             deltas[i] = reward[i] + self.gamma * pre_value - value[i]
-            advangtage[i] = deltas[i] + self.gamma * self.lamda * pre_advantage
+            advantage[i] = deltas[i] + self.gamma * self.lamda * pre_advantage
             pre_return = returns[i]
             pre_value = value[i]
-            pre_advantage = advangtage[i]
+            pre_advantage = advantage[i]
 
 
         mask = th.ones_like(value)
@@ -78,12 +78,14 @@ class ACLearner:
 
         td_error = reward + self.gamma * next_value.detach() - value
         td_loss = (td_error ** 2).mean()
-        J = - (advangtage.detach() * log_pi).mean()
+        entropies = -(log_pi * log_pi.exp()).sum(dim=1, keepdim=True)
+        J = - (advantage.detach() * log_pi + entropies).mean()
 
         loss = J + td_loss
 
         self.writer.add_scalar('Loss/J', J.item(), self._episode)
         self.writer.add_scalar('Loss/TD_loss', td_loss.item(), self._episode)
+        self.writer.add_scalar('Loss/Entropy', entropies.mean().item(), self.step)
         self.writer.add_scalar('Loss/loss', loss.item(), self._episode)
 
 

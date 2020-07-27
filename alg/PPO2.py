@@ -124,7 +124,7 @@ class PPOLearner:
 
             L_P.append(loss_surr.item())
             L_V.append(loss_value.item())
-            L_E.append(loss_entropy.item())
+            L_E.append(-loss_entropy.item())
 
 
 

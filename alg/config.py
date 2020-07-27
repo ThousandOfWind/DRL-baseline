@@ -54,9 +54,9 @@ QAC = {
 }
 
 QAC_SN = {
-    'mamory_size': 10,
+    'mamory_size': 1,
     'alg': 'QAC-SN',
-    'gamma': 0.99,
+    'gamma': 0.995,
     'learning_rate': 0.01,
     'n_episode': 5000,
     'hidden_dim': 128,
@@ -66,7 +66,7 @@ QAC_SN = {
 
 
 OS_AC = {
-    'mamory_size': 10,
+    'mamory_size': 1,
     'alg': 'OS-AC',
     'soft': True,
     'gamma': 0.99,
@@ -112,7 +112,7 @@ PPO2 = {
 
 DDPG = {
     'mamory_size': 100000,
-    'alg': 'QLearning',
+    'alg': 'DDPG',
     'soft': False,
     'gamma': 0.99,
     'learning_rate': 0.001,
@@ -128,7 +128,7 @@ DDPG = {
 
 TD3 = {
     'mamory_size': 100000,
-    'alg': 'QLearning',
+    'alg': 'TD3',
     'soft': False,
     'gamma': 0.99,
     'learning_rate': 0.001,
@@ -145,7 +145,7 @@ TD3 = {
 
 SAC = {
     'mamory_size': 100000,
-    'alg': 'QLearning',
+    'alg': 'SAC',
     'soft': False,
     'gamma': 0.99,
     'Q_learning_rate': 0.001,
@@ -166,6 +166,46 @@ SAC = {
 }
 
 
+SAC_discrete = {
+    'mamory_size': 100000,
+    'alg': 'SAC-discrete',
+    'soft': False,
+    'gamma': 0.995,
+    'Q_learning_rate': 0.01,
+    'Policy_learning_rate': 0.001,
+    'Alpha_learning_rate': 0.0005,
+    'n_episode': 5000,
+    'hidden_dim': 64,
+    'batch_size': 128,
+    'memory_type': 'os',
+    'tau': 0.005,
+    'target_Q_update_interval': 2,
+    'soft_update': True,
+    'pi_update_interval': 2,
+    'epsilon_start': 0.5,
+    'epsilon_end': 0.01,
+    'time_length': 40000,
+    'init_alpha': 1,
+    'learnable_alpha': True,
+    'layer_norm': True,
+    'apart_av':False,
+}
+
+A3C = {
+    'mamory_size': 1,
+    'alg': 'QAC-SN',
+    'gamma': 0.995,
+    'learning_rate': 0.01,
+    'n_episode': 5000,
+    'hidden_dim': 128,
+    'memory_type': 'ep',
+    'rnn': False,
+    'clone_share_model':False,
+    'soft_clone': False,
+    'tau': 0.005,
+}
+
+
 
 PARAM['REINFORCE'] = REINFORCE
 PARAM['QLearning'] = QLearning
@@ -175,6 +215,6 @@ PARAM['QAC-SN'] = QAC_SN
 PARAM['OS-AC'] = OS_AC
 PARAM['QAC-rnn'] = QAC_rnn
 PARAM['PPO2'] = PPO2
-
+PARAM['SAC-discrete'] = SAC_discrete
 
 

@@ -83,9 +83,7 @@ class SAC_discrete_Actor( nn.Module):
         super(SAC_discrete_Actor, self).__init__()
         input_len = param_set['obs_shape'][0]
         self.hidden_dim = param_set['hidden_dim']
-        self.continue_action = param_set['continue']
         layer_norm = param_set['layer_norm']
-        self.log_std_bound = param_set['log_std_bound']
 
         self.actor_fc1 = nn.Linear(input_len, self.hidden_dim)
         self.actor_fc2 = nn.Linear(self.hidden_dim, self.hidden_dim)
@@ -106,10 +104,13 @@ class SAC_discrete_Actor( nn.Module):
         x = F.tanh(self.actor_fc1(x))
         x = F.tanh(self.actor_fc2(x))
         x = self.actor_fc3(x)
-        x = th.clamp(x, min=self.min_pi)
+
+        # x = th.clamp(x, min=self.min_pi)
         pi = F.softmax(x, dim=-1)
         m = Categorical(pi)
         action_index = m.sample()
-        action_log_probs = pi.log()
+
+        z = (pi == 0.0).float() * 1e-8
+        action_log_probs = (pi+z).log()
 
         return action_index, action_log_probs, pi

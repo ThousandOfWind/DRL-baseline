@@ -27,11 +27,11 @@ class DNNAgent(nn.Module):
         x = F.relu(self.fc2(x))
         # x = self.dropout(x)
 
-        pi = self.actor(x)
+        pi = self.actor(x).exp()
+        # pi = th.clamp(pi, min=1e-8)
+
+        pi = F.softmax(pi, dim=-1)
 
         q = self.critic(x)
-
-        pi = F.softmax(th.exp(pi), dim=-1)
-
         return pi, q
 

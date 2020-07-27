@@ -52,16 +52,33 @@ class ACLearner:
         batch = memory.get_last_trajectory()
 
         reward = th.FloatTensor(batch['reward'][0])
+        value = th.stack(self.value_batch)
         log_pi = th.stack(self.log_pi_batch)
 
-        value = th.stack(self.value_batch)
+
+        # advantage
+        advangtage = th.zeros_like(reward)
+        returns = th.zeros_like(reward)
+        deltas = th.zeros_like(reward)
+        pre_return = 0
+        pre_value = 0
+        pre_advantage = 0
+        for i in range(advangtage.shape[0]-1, -1, -1):
+            returns[i] = reward[i] + self.gamma * pre_return
+            deltas[i] = reward[i] + self.gamma * pre_value - value[i]
+            advangtage[i] = deltas[i] + self.gamma * self.lamda * pre_advantage
+            pre_return = returns[i]
+            pre_value = value[i]
+            pre_advantage = advangtage[i]
+
+
         mask = th.ones_like(value)
         mask[-1] = 0
         next_value = th.cat([value[1:], value[0:1]],dim=-1) * mask
 
         td_error = reward + self.gamma * next_value.detach() - value
         td_loss = (td_error ** 2).mean()
-        J = - (value.detach() * log_pi).mean()
+        J = - (advangtage.detach() * log_pi).mean()
 
         loss = J + td_loss
 

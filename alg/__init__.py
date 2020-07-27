@@ -9,6 +9,7 @@ from .PPO2 import PPOLearner
 
 
 from .Qlearning import QLearner
+from .SAC_discrete import SAC_Discrete
 
 Learner = {
     'REINFORCE': REINFORCELearner,
@@ -19,4 +20,5 @@ Learner = {
     'QAC-SN': QAC_SN,
     'OS-AC': OS_AC,
     'PPO2': PPOLearner,
+    'SAC-discrete': SAC_Discrete
 }

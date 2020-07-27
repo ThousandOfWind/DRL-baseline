@@ -18,6 +18,7 @@ class ACLearner:
         self.obs_shape = param_set['obs_shape'][0]
         self.gamma = param_set['gamma']
         self.learning_rate = param_set['learning_rate']
+        self.loss_coeff_entropy = param_set['loss_coeff_entropy']
 
         self.ac = DNNAgent(param_set)
 

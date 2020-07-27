@@ -20,15 +20,13 @@ class ACLearner:
         self.learning_rate = param_set['learning_rate']
         self.clone_share_model = param_set['clone_share_model']
         self.id = param_set['worker_id']
+        self.loss_coeff_entropy = param_set['loss_coeff_entropy']
 
 
-        if self.clone_share_model:
-            self.ac = copy.deepcopy(share_model)
-            self.soft_clone = param_set['soft_clone']
-            if self.soft_clone:
-                self.tau = param_set['tau']
-        else:
-            self.ac = DNNAgent(param_set)
+        self.ac = copy.deepcopy(share_model)
+        self.soft_clone = param_set['soft_clone']
+        if self.soft_clone:
+            self.tau = param_set['tau']
 
         self.params = share_model.parameters()
         self.optimiser = optimizer

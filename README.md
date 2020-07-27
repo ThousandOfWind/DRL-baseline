@@ -21,8 +21,8 @@
 * A3C
 
 ### 可以配合以下内容服用
-|CSDN 地址                                                                                          ｜涉及算法｜
-｜:----｜:----|
+|CSDN 地址                                                                                          |涉及算法｜
+|:----|:----|
 |[强化学习策略梯度梳理1 - REINFORCE（附代码）](https://blog.csdn.net/thousandsofwind/article/details/107081358) |REINFORCE、REINFORCE with baseline|
 |[强化学习策略梯度梳理2 - AC（附代码）](https://blog.csdn.net/thousandsofwind/article/details/107174444)|one-step AC、 QAC、 QAC with shared network|
 |[强化学习策略梯度梳理3-SOTA 上](https://blog.csdn.net/thousandsofwind/article/details/107209674)      |PPO2|
